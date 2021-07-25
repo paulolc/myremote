@@ -1,0 +1,16 @@
+{
+  "name": "myremote",
+  "version": "1.0.0",
+  "description": "daemon to control mpd via ir remote",
+  "main": "myremote.js",
+  "dependencies": {
+    "input-event": "^1.2.6",
+    "mpd": "^1.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "paulolc",
+  "license": "ISC"
+}

@@ -1,0 +1,18 @@
+{
+    "PLAY": 729,
+    "STOP": 734,
+    "NEXT": 735,
+    "PREVIOUS": 730,
+    "VOLUME_UP": 738,
+    "VOLUME_DOWN": 733,
+    "MUTE":728,
+    "FUNCTION": 724,
+    "PLAY_MODE": 725,
+    "SLEEP": 726,
+    "FOLDER_RIGHT": 736,
+    "FOLDER_LEFT": 731,
+    "ALSETOFF_1": 732,
+    "ALSETOFF_2": 737,
+    "EQ": 727,
+    "ON": 723
+}
