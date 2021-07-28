@@ -8,7 +8,20 @@ const VOL_BIG_INCR = 10;
 const VOL_SMALL_INCR = 5;
 const SKIP_STEP_IN_SECS = 10;
 
+//const MPD_PORT=6601
+//const MPD_HOST=pine64.home
+const MPD_HOST="127.0.0.1"
+const MPD_PORT=6600
+
+const BITMAPS_FILE = "./icons_8x8_bitmaps.json";
+
 // CODE
+
+
+const ledmatrix = require('node-sense-hat').Leds;
+ledmatrix.clear();
+ledmatrix.setRotation(180);
+
 
 const MPD = require('mpd');
 const InputEvent = require('input-event');
@@ -30,7 +43,7 @@ const MPDCMD_NEXT = 'next';
 const MPDCMD_SETVOL = 'setvol';
 const MPDCMD_SEEKCUR = "seekcur";
 
-
+const BITMAPS = require(BITMAPS_FILE); 
 const codes = require(REMOTE_KEY_MAPPINGS);
 let commands = {};
 commands[ KEYPRESS + codes.STOP ]        = () => sendcmd(MPDCMD_STOP);
@@ -50,10 +63,9 @@ let mpdstatus = {};
 let namebycode = {};
 Object.keys( codes ).forEach( key => namebycode[ codes[key] ] = key );
 
-
 const mpd = MPD.connect({
-  port: 6601,
-  host: 'pine64.home',
+  port: MPD_PORT,
+  host: MPD_HOST,
 });
 
 function logmsg(level,msg){
@@ -71,17 +83,29 @@ function log(msg){
     logmsg( " [INFO]" , msg);
 }
 
+function bitmap( icon ){
+    log("========>>> " + icon);
+    if( BITMAPS[icon] ){
+        ledmatrix.clear();
+        ledmatrix.setPixels( BITMAPS[icon] );
+    }
+}
+
+
 function sendcmd(cmd, args){
     let params = [];
     if( args ){ params = args }
     const logfunc = ( cmd === MPDCMD_STATUS ? logdebug : log );
     logfunc( " [SEND]: " + cmd + " " + params );
-    mpd.sendCommand(mpdcmd(cmd, params), function(err, msg) {
-        if (err) { console.log(err); return } 
-        const status = MPD.parseKeyValueMessage(msg);
-        mpdstatus = ( status ? status : mpdstatus );
-        logdebug(JSON.stringify(mpdstatus)) ;
-    });
+
+    try{ 
+        mpd.sendCommand( mpdcmd(cmd, params), function(err, msg) {
+            if (err) { console.log(err); return } 
+            const status = MPD.parseKeyValueMessage(msg);
+            mpdstatus = ( status ? status : mpdstatus );
+            logdebug(JSON.stringify(mpdstatus)) ;
+        });
+    } catch{}
 }
 
 function mute(){
@@ -123,11 +147,18 @@ function get_keyhandler( evid ){
     return evdata => {
         log(`[INPUT]: ${evid} : ${ namebycode[ evdata.code] }`);
         const cmd = commands[ evid + evdata.code ];
+        bitmap( namebycode[ evdata.code] );
         if( cmd ){
             cmd()
         }
     }
 }
+
+function statusupdate( param ){
+    logdebug(`[MPD] system: ${(param?param:" - ")}`);
+    sendcmd( MPDCMD_STATUS );  
+}
+
 
 mpd.on('ready', function() {
   sendcmd( MPDCMD_STATUS );
@@ -138,10 +169,6 @@ mpd.on('ready', function() {
 
 });
 
-function statusupdate( param ){
-    logdebug(`[MPD] system: ${(param?param:" - ")}`);
-    sendcmd( MPDCMD_STATUS );  
-}
 
 mpd.on('system', statusupdate );
 mpd.on('system-player', statusupdate );
